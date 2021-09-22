@@ -8,10 +8,8 @@ project(
     LANGUAGES CXX
 )
 
-include(cmake/project-is-top-level.cmake)
-include(cmake/variables.cmake)
-
-# ---- Declare library ----
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -DBOOST_NO_AUTO_PTR")
+set_directory_properties(PROPERTIES COMPILE_OPTIONS "-std=c++17")
 
 add_library(tomlplusplus_tomlplusplus INTERFACE)
 add_library(tomlplusplus::tomlplusplus ALIAS tomlplusplus_tomlplusplus)
@@ -23,22 +21,29 @@ set_property(
 
 target_include_directories(
   tomlplusplus_tomlplusplus
-  ${tomlplusplus_warning_guard} # unquoted for list expansion
   INTERFACE
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
-target_compile_features(tomlplusplus_tomlplusplus INTERFACE cxx_std_17)
+include(GNUInstallDirs)
 
-# ---- Install rules ----
+install(TARGETS tomlplusplus_tomlplusplus
+  EXPORT tomlplusplus-export
+  LIBRARY       DESTINATION lib
+  ARCHIVE       DESTINATION lib
+  INCLUDES      DESTINATION include
+  PUBLIC_HEADER DESTINATION include
+)
 
-include(cmake/install-rules.cmake)
+install(
+  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  COMPONENT tomlplusplus_Development
+)
 
-# ---- Examples ----
+install( EXPORT tomlplusplus-export
+  FILE tomlplusplus-config.cmake
+  DESTINATION share/cmake/tomlplusplus/
+  EXPORT_LINK_INTERFACE_LIBRARIES
+)
 
-if(PROJECT_IS_TOP_LEVEL)
-  option(BUILD_EXAMPLES "Build examples tree." OFF)
-  if(BUILD_EXAMPLES)
-    add_subdirectory(examples)
-  endif()
-endif()
